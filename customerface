@@ -1,0 +1,100 @@
+In Controllers folder
+
+HomeController.cs
+
+using System.Diagnostics;
+using customerface.Models;
+using customerface.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace customerface.Controllers
+{
+    public class HomeController : Controller
+    {
+        private readonly IGreetingService _greetingService;
+
+        public HomeController(IGreetingService greetingService)
+        {
+            _greetingService = greetingService;
+        }
+
+        public IActionResult Index()
+        {
+            var message = _greetingService.GetMessage("Christin");
+            ViewBag.Message = message;
+            return View();
+
+        }
+    }
+}
+
+
+
+in Services folder
+
+GreetingService.cs
+
+namespace customerface.Services
+{
+    public class GreetingService : IGreetingService
+    {
+        public string GetMessage(string name)
+        {
+            return $"Hello, {name}! Welcome to CustomerFace!";
+        }
+    }
+}
+
+IGreetingService.cs
+
+namespace customerface.Services
+{
+    public interface IGreetingService
+    {
+        string GetMessage(string name);
+    }
+}
+
+
+
+In Views Folder -> Home folder -> Index.cshtml
+
+<h2>@ViewBag.Message</h2>
+
+
+  
+In Program.cs
+
+using customerface.Services;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped<IGreetingService, GreetingService>();
+
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.Run();
+
