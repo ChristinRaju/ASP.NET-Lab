@@ -1,0 +1,122 @@
+requestlogginmiddleware.cs
+
+
+namespace WebApplication1
+{
+    public class RequestLoggingMiddleware
+    {
+        private readonly RequestDelegate _next;
+
+        public RequestLoggingMiddleware(RequestDelegate next)
+        {
+            _next = next;
+        }
+
+        public async Task InvokeAsync(HttpContext context)
+        {
+            Console.WriteLine("----- Incoming Request -----");
+            Console.WriteLine($"Time   :  {DateTime.Now}");
+            Console.WriteLine($"Method :  {context.Request.Method}");
+            Console.WriteLine($"Path   :  {context.Request.Path}");
+            Console.WriteLine("----------------------------");
+
+            //Pass request to next middleware (MVC)
+            await _next(context);
+        }
+    }
+}
+
+
+
+
+program.cs
+
+
+using WebApplication1;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+app.UseMiddleware <RequestLoggingMiddleware>();
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.Run();
+
+
+
+
+
+controller folder 
+
+homecontroller.cs
+
+using System.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
+using WebApplication1.Models;
+
+namespace WebApplication1.Controllers
+{
+    public class HomeController : Controller
+    {
+        private readonly ILogger<HomeController> _logger;
+
+        public HomeController(ILogger<HomeController> logger)
+        {
+            _logger = logger;
+        }
+
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+    }
+}
+
+
+
+
+models folder
+
+erroeviewmodels.cs
+
+namespace WebApplication1.Models
+{
+    public class ErrorViewModel
+    {
+        public string? RequestId { get; set; }
+
+        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    }
+}
