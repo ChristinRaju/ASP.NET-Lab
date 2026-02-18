@@ -1,0 +1,237 @@
+question 9
+
+Models Folder
+
+Register.cs
+
+using System.ComponentModel.DataAnnotations;
+
+namespace RegistrationApp.Models
+{
+    public class Register
+    {
+        [Required(ErrorMessage = "Name is required")]
+        [RegularExpression(@"^[A-Za-z ]+$", ErrorMessage = "Name must contain only alphabets")]
+        public string Name { get; set; }
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid Email Address")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Password is required")]
+        [MinLength(6, ErrorMessage = "Password must be at least 6 characters long")]
+        [RegularExpression(
+            @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$",
+            ErrorMessage = "Password must include uppercase, lowercase, number, and special character"
+        )]
+        public string Password { get; set; }
+
+        [Required(ErrorMessage = "Age is required")]
+        [Range(18, 60, ErrorMessage = "Age must be between 18 and 60")]
+        public int Age { get; set; }
+    }
+}
+
+
+
+ErrorViewModels.cs
+
+namespace RegistrationApp.Models
+{
+    public class ErrorViewModel
+    {
+        public string? RequestId { get; set; }
+
+        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    }
+}
+
+
+Controllers folder
+
+HomeController.cs
+
+using System.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
+using RegistrationApp.Models;
+
+namespace RegistrationApp.Controllers
+{
+    public class HomeController : Controller
+    {
+        private readonly ILogger<HomeController> _logger;
+
+        public HomeController(ILogger<HomeController> logger)
+        {
+            _logger = logger;
+        }
+
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+    }
+}
+
+
+RegisterController.cs
+
+using Microsoft.AspNetCore.Mvc;
+using RegistrationApp.Models;
+
+namespace RegistrationApp.Controllers
+    {
+        public class RegisterController : Controller
+        {
+            [HttpGet]
+            public IActionResult Index()
+            {
+                return View();
+            }
+
+            [HttpPost]
+            public IActionResult Index(Register user)
+            {
+                if (ModelState.IsValid)
+                {
+                    return Content(
+                        $"Registration Successful\nName: {user.Name}\nEmail: {user.Email}\nPassword: {user.Password}\nAge: {user.Age}"
+                    );
+                }
+
+                return View(user);
+            }
+        }
+    }
+
+
+Views folder -> Home 
+
+Index.cshtml
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+
+Privacy.cshtml
+
+@{
+    ViewData["Title"] = "Privacy Policy";
+}
+<h1>@ViewData["Title"]</h1>
+
+<p>Use this page to detail your site's privacy policy.</p>
+
+
+Views folder -> Register
+
+index.cshtml
+
+@model RegistrationApp.Models.Register
+
+<h2>RegistrationApp</h2>
+
+<form asp-action="Index" method="post">
+
+    <label>Name:</label><br />
+    <input asp-for="Name" />
+    <span asp-validation-for="Name" style="color:red"></span>
+    <br /><br />
+
+    <label>Email:</label><br />
+    <input asp-for="Email" />
+    <span asp-validation-for="Email" style="color:red"></span>
+    <br /><br />
+
+    <label>Password:</label><br />
+    <input asp-for="Password" type="password" />
+    <span asp-validation-for="Password" style="color:red"></span>
+    <br /><br />
+
+    <label>Age:</label><br />
+    <input asp-for="Age" />
+    <span asp-validation-for="Age" style="color:red"></span>
+    <br /><br />
+
+    <button type="submit">Register</button>
+
+</form>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+
+Views folder -> Shared
+
+_viewimports.cshtml
+
+@using RegistrationApp
+@using RegistrationApp.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+
+_viewstart.cshtml
+
+@{
+    Layout = "_Layout";
+}
+
+
+
+Program.cs
+
+namespace RegistrationApp
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+
+            // Add services to the container.
+            builder.Services.AddControllersWithViews();
+
+            var app = builder.Build();
+
+            // Configure the HTTP request pipeline.
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseExceptionHandler("/Home/Error");
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
+            }
+
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
+
+            app.UseRouting();
+
+            app.UseAuthorization();
+
+            app.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Register}/{action=Index}/{id?}");
+
+            app.Run();
+        }
+    }
+}
