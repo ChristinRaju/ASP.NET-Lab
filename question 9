@@ -34,17 +34,7 @@ namespace RegistrationApp.Models
 
 
 
-ErrorViewModels.cs
 
-namespace RegistrationApp.Models
-{
-    public class ErrorViewModel
-    {
-        public string? RequestId { get; set; }
-
-        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
-    }
-}
 
 
 Controllers folder
