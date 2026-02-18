@@ -1,0 +1,134 @@
+controller folder
+
+
+configconroller.cs
+
+  
+  using Microsoft.AspNetCore.Mvc;
+
+namespace ConfigApp.Controllers
+{
+    public class ConfigController : Controller
+    {
+        private readonly IConfiguration _configuration;
+
+        public ConfigController(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        public IActionResult Index()
+        {
+            ViewBag.AppName =
+                _configuration["AppSettings:ApplicationName"];
+
+            ViewBag.Version =
+                _configuration["AppSettings:Version"];
+
+            ViewBag.Developer =
+                _configuration["AppSettings:Developer"];
+
+            return View();
+        }
+    }
+}
+
+
+homecontroller.cs
+
+
+  using System.Diagnostics;
+using ConfigApp.Models;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ConfigApp.Controllers
+{
+    public class HomeController : Controller
+    {
+        private readonly ILogger<HomeController> _logger;
+
+        public HomeController(ILogger<HomeController> logger)
+        {
+            _logger = logger;
+        }
+
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+    }
+}
+
+
+
+models folder
+
+errorviewmodels.cs
+
+namespace ConfigApp.Models
+{
+    public class ErrorViewModel
+    {
+        public string? RequestId { get; set; }
+
+        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    }
+}
+
+
+
+program.cs
+
+  namespace ConfigApp
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
+
+            // Add services to the container.
+            builder.Services.AddControllersWithViews();
+
+            var app = builder.Build();
+
+            // Configure the HTTP request pipeline.
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseExceptionHandler("/Home/Error");
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
+            }
+
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
+
+            app.UseRouting();
+
+            app.UseAuthorization();
+            app.MapStaticAssets();
+
+
+            app.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Config}/{action=Index}/{id?}").WithStaticAssets();
+
+            app.Run();
+        }
+    }
+}
+
+
+
+
